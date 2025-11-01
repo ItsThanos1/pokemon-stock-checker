@@ -104,16 +104,15 @@ pip install -r requirements.txt
 
 ### Environment Variables
 
-**IMPORTANT: For reliable operation, configure these proxy settings in Render:**
+**IMPORTANT: For reliable operation, configure proxy in Render:**
 
-Go to your Render service → **Environment** tab → Add these variables:
+Go to your Render service → **Environment** tab → Add this variable:
 
-| Variable | Value | Required |
-|----------|-------|----------|
-| `PROXY_IP` | Your proxy IP (e.g., 65.195.104.96) | Yes |
-| `PROXY_PORT` | Your proxy port (e.g., 50100) | No (defaults to 50100) |
-| `PROXY_USER` | Your proxy username | Yes |
-| `PROXY_PASS` | Your proxy password | Yes |
+| Variable | Example Value | Required |
+|----------|---------------|----------|
+| `PROXY_URL` | `http://username:password@65.195.104.66:50100` | Yes |
+
+**Format:** `http://USERNAME:PASSWORD@IP:PORT`
 
 **Why use a proxy?** Best Buy may rate-limit or block Render's IP addresses. Using a residential proxy/ISP ensures reliable access to their API.
 

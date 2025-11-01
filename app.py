@@ -10,23 +10,18 @@ warnings.filterwarnings("ignore")
 
 app = Flask(__name__)
 
-# Get proxy settings from environment variables
-PROXY_IP = os.environ.get('PROXY_IP', '')
-PROXY_PORT = os.environ.get('PROXY_PORT', '50100')
-PROXY_USER = os.environ.get('PROXY_USER', '')
-PROXY_PASS = os.environ.get('PROXY_PASS', '')
+# Get proxy URL from single environment variable (much simpler!)
+PROXY_URL = os.environ.get('PROXY_URL', '')
 
-# Build proxy configuration with embedded credentials
+# Build proxy configuration
 PROXIES = None
 
-if PROXY_IP and PROXY_USER and PROXY_PASS:
-    # Embed credentials directly in proxy URL (more reliable for HTTP proxies)
-    proxy_url = f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_IP}:{PROXY_PORT}"
+if PROXY_URL:
     PROXIES = {
-        'http': proxy_url,
-        'https': proxy_url
+        'http': PROXY_URL,
+        'https': PROXY_URL
     }
-    print(f"✅ Proxy configured: {PROXY_IP}:{PROXY_PORT} with user: {PROXY_USER}")
+    print(f"✅ Proxy configured: {PROXY_URL.split('@')[1] if '@' in PROXY_URL else PROXY_URL}")
 else:
     print("⚠️ No proxy configured - using direct connection")
 
