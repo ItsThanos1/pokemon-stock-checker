@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Card Stock Checker - Best Buy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .search-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 30px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .color-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .color-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .color-checkbox:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .color-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .color-checkbox.checked {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+        
+        .color-label {
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .color-black { color: #000; }
+        .color-grey { color: #666; }
+        .color-blue { color: #0066cc; }
+        .color-white { color: #888; }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .results {
+            display: none;
+        }
+        
+        .results.active {
+            display: block;
+        }
+        
+        .color-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .color-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #f0f0f0;
+            margin-bottom: 20px;
+        }
+        
+        .color-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .sku-badge {
+            background: #f0f0f0;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 1.1em;
+        }
+        
+        .store-grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .store-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .store-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .store-card.pickup {
+            border-left: 5px solid #10b981;
+        }
+        
+        .store-card.ship {
+            border-left: 5px solid #f59e0b;
+        }
+        
+        .store-name {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .store-location {
+            color: #666;
+            margin-bottom: 12px;
+            font-size: 1.05em;
+        }
+        
+        .store-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 12px;
+        }
+        
+        .detail-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: 600;
+        }
+        
+        .badge-pickup {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-ship {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-quantity {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        
+        .badge-distance {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .no-stock {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .summary {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        
+        .summary h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            padding: 20px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Pokemon Card Stock Checker</h1>
+            <p>Find Best Buy stores with Pokemon cards in stock near you!</p>
+        </div>
+        
+        <div class="search-card">
+            <form id="stockForm">
+                <div class="form-group">
+                    <label for="zip_code">📍 Enter Your Zip Code:</label>
+                    <input type="text" id="zip_code" name="zip_code" placeholder="e.g., 90210" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>🎨 Select Colors to Check:</label>
+                    <div class="color-options">
+                        <div class="color-checkbox" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" name="colors" value="all" id="color-all">
+                            <label for="color-all" class="color-label">✨ Check All</label>
+                        </div>
+                        <div class="color-checkbox" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" name="colors" value="black" id="color-black">
+                            <label for="color-black" class="color-label color-black">⬛ Black</label>
+                        </div>
+                        <div class="color-checkbox" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" name="colors" value="grey" id="color-grey">
+                            <label for="color-grey" class="color-label color-grey">◾ Grey</label>
+                        </div>
+                        <div class="color-checkbox" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" name="colors" value="blue" id="color-blue">
+                            <label for="color-blue" class="color-label color-blue">🔷 Blue</label>
+                        </div>
+                        <div class="color-checkbox" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" name="colors" value="white" id="color-white">
+                            <label for="color-white" class="color-label color-white">◻️ White</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">🔍 Check Stock Availability</button>
+            </form>
+        </div>
+        
+        <div class="loading" id="loading">
+            <h2>⏳ Checking inventory across Best Buy stores...</h2>
+        </div>
+        
+        <div id="error"></div>
+        
+        <div class="results" id="results"></div>
+    </div>
+    
+    <script>
+        function toggleCheckbox(element) {
+            const checkbox = element.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            
+            // Update visual state
+            if (checkbox.checked) {
+                element.classList.add('checked');
+            } else {
+                element.classList.remove('checked');
+            }
+            
+            // If "all" is checked, uncheck individual colors
+            if (checkbox.value === 'all' && checkbox.checked) {
+                document.querySelectorAll('input[name="colors"]:not([value="all"])').forEach(cb => {
+                    cb.checked = false;
+                    cb.parentElement.classList.remove('checked');
+                });
+            } else if (checkbox.value !== 'all' && checkbox.checked) {
+                // If individual color is checked, uncheck "all"
+                const allCheckbox = document.querySelector('input[value="all"]');
+                allCheckbox.checked = false;
+                allCheckbox.parentElement.classList.remove('checked');
+            }
+        }
+        
+        document.getElementById('stockForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const selectedColors = formData.getAll('colors');
+            
+            if (selectedColors.length === 0) {
+                showError('Please select at least one color to check!');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('error').innerHTML = '';
+            
+            try {
+                const response = await fetch('/check_stock', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+                
+                displayResults(data);
+            } catch (error) {
+                showError('An error occurred while checking stock. Please try again.');
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+            }
+        });
+        
+        function showError(message) {
+            document.getElementById('error').innerHTML = `<div class="error">❌ ${message}</div>`;
+            document.getElementById('loading').classList.remove('active');
+        }
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            let html = '';
+            
+            // Calculate totals
+            let totalPickup = 0;
+            let totalShip = 0;
+            
+            for (const [color, result] of Object.entries(data.results)) {
+                totalPickup += result.pickup_stores.length;
+                totalShip += result.ship_stores.length;
+            }
+            
+            // Summary
+            html += `
+                <div class="summary">
+                    <h2>📊 Summary for Zip Code: ${data.zip_code}</h2>
+                    <div class="summary-stats">
+                        <div class="stat-card">
+                            <div class="stat-number">${totalPickup}</div>
+                            <div class="stat-label">Pickup Locations</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${totalShip}</div>
+                            <div class="stat-label">Ship-to-Store Options</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Results for each color
+            for (const [color, result] of Object.entries(data.results)) {
+                html += `
+                    <div class="color-section">
+                        <div class="color-header">
+                            <span class="color-title color-${color}">${color} Edition</span>
+                            <span class="sku-badge">SKU: ${result.sku}</span>
+                        </div>
+                `;
+                
+                if (result.pickup_stores.length === 0 && result.ship_stores.length === 0) {
+                    html += `<div class="no-stock">😔 No stock available near you</div>`;
+                } else {
+                    html += '<div class="store-grid">';
+                    
+                    // Pickup stores
+                    result.pickup_stores.forEach(store => {
+                        const qtyDisplay = store.quantity === 9999 ? 'High Stock' : `${store.quantity} units`;
+                        html += `
+                            <div class="store-card pickup">
+                                <div class="store-name">🏪 ${store.name}</div>
+                                <div class="store-location">📍 ${store.city}, ${store.state}</div>
+                                <div class="store-details">
+                                    <span class="detail-badge badge-pickup">✅ PICKUP AVAILABLE</span>
+                                    <span class="detail-badge badge-quantity">📦 ${qtyDisplay}</span>
+                                    ${store.distance !== 'N/A' ? `<span class="detail-badge badge-distance">📏 ${store.distance} mi</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    // Ship to store
+                    result.ship_stores.forEach(store => {
+                        html += `
+                            <div class="store-card ship">
+                                <div class="store-name">🏪 ${store.name}</div>
+                                <div class="store-location">📍 ${store.city}, ${store.state}</div>
+                                <div class="store-details">
+                                    <span class="detail-badge badge-ship">📦 SHIP TO STORE</span>
+                                    <span class="detail-badge badge-distance">📅 ${store.min_date}</span>
+                                    ${store.distance !== 'N/A' ? `<span class="detail-badge badge-distance">📏 ${store.distance} mi</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                }
+                
+                html += '</div>';
+            }
+            
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add('active');
+        }
+    </script>
+</body>
+</html>
+

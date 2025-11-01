@@ -1,0 +1,87 @@
+╔══════════════════════════════════════════════════════════════════╗
+║           RENDER DEPLOYMENT - QUICK REFERENCE CARD               ║
+╚══════════════════════════════════════════════════════════════════╝
+
+🎯 REQUIRED RENDER SETTINGS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Service Type:     Web Service
+Runtime:          Python 3
+Build Command:    pip install -r requirements.txt
+Start Command:    gunicorn app:app
+Instance Type:    Free (or paid for 24/7 uptime)
+
+
+📁 REQUIRED FILES (All Included!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ app.py              - Main Flask application
+✅ requirements.txt    - Python dependencies
+✅ Procfile           - Start command for Render
+✅ templates/index.html - Web interface
+✅ render.yaml        - Auto-config (optional)
+✅ .gitignore         - Git ignore file
+
+
+🚀 DEPLOYMENT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Push code to GitHub:
+   git init
+   git add .
+   git commit -m "Pokemon stock checker"
+   git push
+
+2. Go to https://render.com
+
+3. Click "New +" → "Web Service"
+
+4. Connect GitHub repo
+
+5. Enter these settings:
+   - Build Command: pip install -r requirements.txt
+   - Start Command: gunicorn app:app
+
+6. Click "Create Web Service"
+
+7. Wait 2-5 minutes → Your app is LIVE! 🎉
+
+
+🎨 POKEMON CARD SKUs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Black:  6612728
+Grey:   6612730
+Blue:   6612731
+White:  6612732
+
+
+💡 TIPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Free tier sleeps after 15 min inactivity (first load = 30 sec)
+• Upgrade to paid for instant loads
+• No environment variables needed!
+• No database needed!
+• App URL: https://your-app-name.onrender.com
+
+
+🔧 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: App won't start
+Fix: Check Render logs, verify Start Command is exactly:
+     gunicorn app:app
+
+Problem: Module errors
+Fix: Verify requirements.txt is present and Build Command ran
+
+Problem: No results
+Fix: Try different zip code, wait 1 min (API rate limit)
+
+
+📞 NEED HELP?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Check the full README.md for detailed instructions!
+
