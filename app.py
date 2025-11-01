@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, jsonify
 import requests
 import warnings
 from datetime import datetime
+import time
 
 warnings.filterwarnings("ignore")
 
@@ -18,7 +19,7 @@ POKEMON_SKUS = {
 }
 
 def check_stock_for_sku(sku, zip_code):
-    """Check stock availability for a single SKU"""
+    """Check stock availability for a single SKU with retry logic"""
     data = {
         "zipCode": zip_code,
         "showOnShelf": True,
@@ -43,74 +44,111 @@ def check_stock_for_sku(sku, zip_code):
     }
     
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Origin': 'https://www.bestbuy.com'
+        'Origin': 'https://www.bestbuy.com',
+        'Referer': 'https://www.bestbuy.com/',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br'
     }
     
-    try:
-        url = 'https://www.bestbuy.com/productfulfillment/c/api/2.0/storeAvailability'
-        response = requests.post(url, json=data, headers=headers, timeout=30, verify=False)
-        response.raise_for_status()
-        
-        response_data = response.json()
-        
-        if not response_data or 'ispu' not in response_data:
-            return {'pickup_stores': [], 'ship_stores': []}
-        
-        # Build location lookup
-        locations = {loc['id']: loc for loc in response_data['ispu']['locations']}
-        
-        pickup_stores = []
-        ship_to_location_stores = []
-        
-        for item in response_data['ispu']['items']:
-            for location_data in item['locations']:
-                location_id = location_data['locationId']
-                store_info = locations.get(location_id)
-                
-                if not store_info:
-                    continue
-                
-                availability = location_data.get('availability', {})
-                fulfillment_type = availability.get('fulfillmentType')
-                
-                if fulfillment_type == "PICKUP":
-                    qty = availability.get('availablePickupQuantity', 0)
-                    if qty > 0:
-                        pickup_stores.append({
+    url = 'https://www.bestbuy.com/productfulfillment/c/api/2.0/storeAvailability'
+    
+    # Retry logic: try up to 3 times with increasing timeouts
+    max_retries = 3
+    timeouts = [45, 60, 90]  # Increased timeouts
+    
+    for attempt in range(max_retries):
+        try:
+            print(f"Attempt {attempt + 1} for SKU {sku}...")
+            response = requests.post(
+                url, 
+                json=data, 
+                headers=headers, 
+                timeout=timeouts[attempt],
+                verify=False
+            )
+            response.raise_for_status()
+            
+            response_data = response.json()
+            
+            # Success! Process the data
+            if not response_data or 'ispu' not in response_data:
+                return {'pickup_stores': [], 'ship_stores': []}
+            
+            # Build location lookup
+            locations = {loc['id']: loc for loc in response_data['ispu']['locations']}
+            
+            pickup_stores = []
+            ship_to_location_stores = []
+            
+            for item in response_data['ispu']['items']:
+                for location_data in item['locations']:
+                    location_id = location_data['locationId']
+                    store_info = locations.get(location_id)
+                    
+                    if not store_info:
+                        continue
+                    
+                    availability = location_data.get('availability', {})
+                    fulfillment_type = availability.get('fulfillmentType')
+                    
+                    if fulfillment_type == "PICKUP":
+                        qty = availability.get('availablePickupQuantity', 0)
+                        if qty > 0:
+                            pickup_stores.append({
+                                'name': store_info['name'],
+                                'city': store_info['city'],
+                                'state': store_info['state'],
+                                'address': store_info.get('address', 'N/A'),
+                                'distance': store_info.get('distance', 'N/A'),
+                                'quantity': qty,
+                                'fulfillment': 'pickup',
+                                'available_date': availability.get('minDate', 'Today')
+                            })
+                    
+                    elif fulfillment_type == "SHIP_TO_LOCATION":
+                        ship_to_location_stores.append({
                             'name': store_info['name'],
                             'city': store_info['city'],
                             'state': store_info['state'],
                             'address': store_info.get('address', 'N/A'),
                             'distance': store_info.get('distance', 'N/A'),
-                            'quantity': qty,
-                            'fulfillment': 'pickup',
-                            'available_date': availability.get('minDate', 'Today')
+                            'fulfillment': 'ship_to_store',
+                            'service_level': availability.get('serviceLevel', 'Unknown'),
+                            'min_date': availability.get('minDate'),
+                            'max_date': availability.get('maxDate')
                         })
-                
-                elif fulfillment_type == "SHIP_TO_LOCATION":
-                    ship_to_location_stores.append({
-                        'name': store_info['name'],
-                        'city': store_info['city'],
-                        'state': store_info['state'],
-                        'address': store_info.get('address', 'N/A'),
-                        'distance': store_info.get('distance', 'N/A'),
-                        'fulfillment': 'ship_to_store',
-                        'service_level': availability.get('serviceLevel', 'Unknown'),
-                        'min_date': availability.get('minDate'),
-                        'max_date': availability.get('maxDate')
-                    })
-        
-        return {
-            'pickup_stores': pickup_stores,
-            'ship_stores': ship_to_location_stores
-        }
-        
-    except Exception as e:
-        print(f"Error checking SKU {sku}: {e}")
-        return {'pickup_stores': [], 'ship_stores': [], 'error': str(e)}
+            
+            # Successfully retrieved data, return it
+            return {
+                'pickup_stores': pickup_stores,
+                'ship_stores': ship_to_location_stores
+            }
+            
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            # Network issues - retry
+            print(f"Timeout/Connection error on attempt {attempt + 1} for SKU {sku}: {e}")
+            if attempt < max_retries - 1:
+                wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                print(f"Waiting {wait_time}s before retry...")
+                time.sleep(wait_time)
+                continue
+            else:
+                # Final attempt failed
+                return {
+                    'pickup_stores': [], 
+                    'ship_stores': [], 
+                    'error': f'Best Buy API timeout after {max_retries} attempts. Try again in a moment.'
+                }
+        except Exception as e:
+            # Other errors
+            print(f"Error checking SKU {sku}: {e}")
+            return {'pickup_stores': [], 'ship_stores': [], 'error': str(e)}
+    
+    # Should never reach here, but just in case
+    return {'pickup_stores': [], 'ship_stores': [], 'error': 'Unexpected error'}
 
 @app.route('/')
 def index():
@@ -136,9 +174,14 @@ def check_stock():
         if 'all' in selected_colors:
             selected_colors = list(POKEMON_SKUS.keys())
         
-        for color in selected_colors:
+        for i, color in enumerate(selected_colors):
             if color in POKEMON_SKUS:
                 sku = POKEMON_SKUS[color]
+                
+                # Add small delay between requests to avoid rate limiting (except first request)
+                if i > 0:
+                    time.sleep(1)
+                
                 results[color] = check_stock_for_sku(sku, zip_code)
                 results[color]['sku'] = sku
         

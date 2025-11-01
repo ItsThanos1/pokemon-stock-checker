@@ -488,7 +488,9 @@
                         </div>
                 `;
                 
-                if (result.pickup_stores.length === 0 && result.ship_stores.length === 0) {
+                if (result.error) {
+                    html += `<div class="no-stock">⚠️ ${result.error}</div>`;
+                } else if (result.pickup_stores.length === 0 && result.ship_stores.length === 0) {
                     html += `<div class="no-stock">😔 No stock available near you</div>`;
                 } else {
                     html += '<div class="store-grid">';
