@@ -8,8 +8,14 @@
 Service Type:     Web Service
 Runtime:          Python 3
 Build Command:    pip install -r requirements.txt
-Start Command:    gunicorn app:app
+Start Command:    gunicorn app:app --timeout 300 --workers 2
 Instance Type:    Free (or paid for 24/7 uptime)
+
+IMPORTANT - Add Environment Variables:
+PROXY_IP          Your proxy IP (e.g., 65.195.104.96)
+PROXY_PORT        50100 (or your port)
+PROXY_USER        Your proxy username
+PROXY_PASS        Your proxy password
 
 
 📁 REQUIRED FILES (All Included!)

@@ -103,7 +103,19 @@ pip install -r requirements.txt
 ```
 
 ### Environment Variables
-None required! The app works out of the box.
+
+**IMPORTANT: For reliable operation, configure these proxy settings in Render:**
+
+Go to your Render service → **Environment** tab → Add these variables:
+
+| Variable | Value | Required |
+|----------|-------|----------|
+| `PROXY_IP` | Your proxy IP (e.g., 65.195.104.96) | Yes |
+| `PROXY_PORT` | Your proxy port (e.g., 50100) | No (defaults to 50100) |
+| `PROXY_USER` | Your proxy username | Yes |
+| `PROXY_PASS` | Your proxy password | Yes |
+
+**Why use a proxy?** Best Buy may rate-limit or block Render's IP addresses. Using a residential proxy/ISP ensures reliable access to their API.
 
 ### Python Version
 The app uses Python 3.11 by default (specified in `render.yaml`)

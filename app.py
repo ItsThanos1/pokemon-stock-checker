@@ -5,10 +5,29 @@ import requests
 import warnings
 from datetime import datetime
 import time
+import os
 
 warnings.filterwarnings("ignore")
 
 app = Flask(__name__)
+
+# Get proxy settings from environment variables
+PROXY_IP = os.environ.get('PROXY_IP', '')
+PROXY_PORT = os.environ.get('PROXY_PORT', '50100')
+PROXY_USER = os.environ.get('PROXY_USER', '')
+PROXY_PASS = os.environ.get('PROXY_PASS', '')
+
+# Build proxy URL if credentials are provided
+PROXIES = None
+if PROXY_IP and PROXY_USER and PROXY_PASS:
+    proxy_url = f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_IP}:{PROXY_PORT}"
+    PROXIES = {
+        'http': proxy_url,
+        'https': proxy_url
+    }
+    print(f"✅ Using proxy: {PROXY_IP}:{PROXY_PORT}")
+else:
+    print("⚠️ No proxy configured - using direct connection")
 
 # Pokemon Card SKUs
 POKEMON_SKUS = {
@@ -67,6 +86,7 @@ def check_stock_for_sku(sku, zip_code):
                 json=data, 
                 headers=headers, 
                 timeout=timeouts[attempt],
+                proxies=PROXIES,
                 verify=False
             )
             response.raise_for_status()
