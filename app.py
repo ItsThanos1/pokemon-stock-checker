@@ -2,7 +2,6 @@
 
 from flask import Flask, render_template, request, jsonify
 import requests
-from requests.auth import HTTPProxyAuth
 import warnings
 from datetime import datetime
 import os
@@ -17,18 +16,16 @@ PROXY_PORT = os.environ.get('PROXY_PORT', '50100')
 PROXY_USER = os.environ.get('PROXY_USER', '')
 PROXY_PASS = os.environ.get('PROXY_PASS', '')
 
-# Build proxy configuration
+# Build proxy configuration with embedded credentials
 PROXIES = None
-PROXY_AUTH = None
 
 if PROXY_IP and PROXY_USER and PROXY_PASS:
-    # Try both http and https schemes for the proxy
-    proxy_url = f"http://{PROXY_IP}:{PROXY_PORT}"
+    # Embed credentials directly in proxy URL (more reliable for HTTP proxies)
+    proxy_url = f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_IP}:{PROXY_PORT}"
     PROXIES = {
         'http': proxy_url,
         'https': proxy_url
     }
-    PROXY_AUTH = HTTPProxyAuth(PROXY_USER, PROXY_PASS)
     print(f"✅ Proxy configured: {PROXY_IP}:{PROXY_PORT} with user: {PROXY_USER}")
 else:
     print("⚠️ No proxy configured - using direct connection")
@@ -77,13 +74,12 @@ def check_stock_for_sku(sku, zip_code):
         url = 'https://www.bestbuy.com/productfulfillment/c/api/2.0/storeAvailability'
         
         # Make request with or without proxy
-        if PROXIES and PROXY_AUTH:
+        if PROXIES:
             response = requests.post(
                 url, 
                 json=data, 
                 headers=headers, 
                 proxies=PROXIES,
-                auth=PROXY_AUTH,
                 timeout=60,
                 verify=False
             )
